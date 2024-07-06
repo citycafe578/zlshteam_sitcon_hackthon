@@ -3,6 +3,7 @@ from linebot import WebhookHandler
 from linebot.exceptions import InvalidSignatureError
 from linebot.models import MessageEvent, TextMessage, TextSendMessage
 from linebot import LineBotApi
+import main_word
 
 app = Flask(__name__)
 
@@ -33,7 +34,7 @@ def handle_message(event):
 
     line_bot_api.reply_message(
         event.reply_token,
-        TextSendMessage(text=user_message)
+        TextSendMessage(text=main_word.main_word(user_message))
     )
 
 if __name__ == "__main__":
