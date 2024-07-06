@@ -1,39 +1,40 @@
 from flask import Flask, request, abort
-from linebot.v3 import WebhookHandler
-from linebot.v3.exceptions import InvalidSignatureError
-from linebot.v3.messaging import Configuration, ApiClient, MessagingApi, ReplyMessageRequest, TextMessage
-from linebot.v3.webhooks import MessageEvent, TextMessageContent
+from linebot import WebhookHandler
+from linebot.exceptions import InvalidSignatureError
+from linebot.models import MessageEvent, TextMessage, TextSendMessage
+from linebot import LineBotApi
 
 app = Flask(__name__)
 
-configuration = Configuration(access_token='hRsI4WZ1V2Z3woqQSZhV4WURqylDxywDp1ZKJTUPp9QmD4D6IRTWQo4docrR+DToW2IQvHNib+ieyLRwe91pxiHbVWyHRFiHCikFxmSvf9sQgVhfup1eFswOVQ+dJE2CPGsF4YAo5i+Ud1z0aJ98NwdB04t89/1O/w1cDnyilFU=')
-handler = WebhookHandler('6a9d7859928537988a8a0c23ed0d0fca')
+CHANNEL_ACCESS_TOKEN = 'hRsI4WZ1V2Z3woqQSZhV4WURqylDxywDp1ZKJTUPp9QmD4D6IRTWQo4docrR+DToW2IQvHNib+ieyLRwe91pxiHbVWyHRFiHCikFxmSvf9sQgVhfup1eFswOVQ+dJE2CPGsF4YAo5i+Ud1z0aJ98NwdB04t89/1O/w1cDnyilFU='
+CHANNEL_SECRET = '6a9d7859928537988a8a0c23ed0d0fca'
 
+line_bot_api = LineBotApi(CHANNEL_ACCESS_TOKEN)
+handler = WebhookHandler(CHANNEL_SECRET)
 
 @app.route("/callback", methods=['POST'])
 def callback():
-
     signature = request.headers['X-Line-Signature']
-
     body = request.get_data(as_text=True)
     app.logger.info("Request body: " + body)
 
     try:
         handler.handle(body, signature)
     except InvalidSignatureError:
-        app.logger.info("Invalid signature. Please check your channel access token/channel secret.")
+        app.logger.error("Invalid signature. Please check your channel access token/channel secret.")
         abort(400)
 
     return 'OK'
 
-
-@handler.add(MessageEvent, message=TextMessageContent)
+@handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
     user_message = event.message.text
-    print(f"Received message: {user_message}")
-    with ApiClient(configuration) as api_client:
-        line_bot_api = MessagingApi(api_client)
-        line_bot_api.reply_message_with_http_info( ReplyMessageRequest( reply_token=event.reply_token, messages=[TextMessage(text=event.message.text)]))
+    app.logger.debug(f"Received message: {user_message}")
+
+    line_bot_api.reply_message(
+        event.reply_token,
+        TextSendMessage(text=user_message)
+    )
 
 if __name__ == "__main__":
-    app.run()
+    app.run(debug=True, port = 8000)
