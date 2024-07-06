@@ -1,7 +1,7 @@
 from flask import Flask, request, abort
 from linebot import LineBotApi, WebhookHandler
 from linebot.exceptions import InvalidSignatureError
-from linebot.models import MessageEvent, TextMessage, TextSendMessage
+from linebot.models import MessageEvent, TextMessage, TextSendMessage, ImageMessage
 import ai
 import assemble
 
@@ -34,6 +34,16 @@ def handle_message(event):
         event.reply_token,
         TextSendMessage(text=response)
     )
+
+@handler.add(MessageEvent, message=ImageMessage)
+def handle_img_message(event):
+    img_id = event.message.id
+    message_content = line_bot_api.get_message_content(img_id)
+    with open(f"images/{message_id}.jpg", "wb") as photo:
+        for chunk in message_content.iter_content():
+            photof.write(chunk)
+
+
 
 if __name__ == "__main__":
     app.run(debug=True, port=8000)
