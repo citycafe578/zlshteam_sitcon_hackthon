@@ -8,6 +8,8 @@ import pytesseract
 api_key = assemble.ai_api 
 client = OpenAI(api_key = api_key)
 main_idea = ''
+question_text = ''
+question_ans = ''
 
 def receive(message):
     completion = client.chat.completions.create(
@@ -45,12 +47,23 @@ def ask_idea(ans):
         model="gpt-4-turbo",
         messages=[
             {"role": "assistant", "content": assemble.setting},
-            {"role": "user", "content": ans + "請問這題的核心觀念是什麼，用最簡單的文字回答，用繁體中文" + assemble.priority_search}
+            {"role": "user", "content": ans + "請問這題的核心觀念是什麼，用最簡單的文字回答，用繁體中文，最後說明此題的核心觀念"}
         ]
     )
-    main_idea = str(completion.choices[0].message)
-    main_idea = main_idea.replace("ChatCompletionMessage(content='", "")
-    main_idea = main_idea.replace("', role='assistant', function_call=None, tool_calls=None)", "")
-    main_idea = main_idea.replace("\n", "%0D%0A")
-    app.app.logger.info("Main Idea:", main_idea)
-    return main_idea
+    find_idea = str(completion.choices[0].message)
+    find_idea = find_idea.replace("ChatCompletionMessage(content='", "")
+    find_idea = find_idea.replace("', role='assistant', function_call=None, tool_calls=None)", "")
+    find_idea = find_idea.replace("\n", "%0D%0A")
+    
+    return find_idea
+
+def question(idea):
+    completion = client.chat.completions.create(
+        model="gpt-4-turbo",
+        messages=[
+            {"role": "assistant", "content": assemble.setting},
+            {"role": "user", "content": idea + "以此為核心幫我出一提類似學測的考題，用繁體中文，別忘了解答以及解釋"}
+        ]
+    )
+    question_text = str(completion.choices[0].message)
+    return question_text
