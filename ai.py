@@ -5,7 +5,7 @@ import os
 from PIL import Image
 import pytesseract
 
-api_key = assemble.ai_api 
+api_key = ('OPENAI_API_KEY')
 client = OpenAI(api_key = api_key)
 main_idea = ''
 question_text = ''
